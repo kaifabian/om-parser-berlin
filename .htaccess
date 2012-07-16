@@ -1,7 +1,3 @@
 RewriteEngine on
 RewriteRule ^(.*).xml$ handle.py
-
-<FilesMatch "(.*)\.git(.*)">
-	Order Allow,Deny
-	Deny from all
-</FilesMatch>
+RewriteRule .*\.git/.* - [F]
