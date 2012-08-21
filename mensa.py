@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import sys,os
 from BeautifulSoup import *
 import libxml2,urllib2
