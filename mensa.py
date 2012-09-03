@@ -252,8 +252,10 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 
 	output = \
 """<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE cafeteria SYSTEM "http://openmensa.org/open-mensa-v1.dtd">
-<cafeteria version="1.0">
+<cafeteria version="1.0"
+			xmlns="http://openmensa.org/open-mensa-v1"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://openmensa.org/open-mensa-v1 http://openmensa.org/open-mensa-v1.xsd">
 """
 
 	url1 = compFormat(curr_url, mensa=name)
