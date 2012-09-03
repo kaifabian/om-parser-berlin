@@ -148,44 +148,44 @@ def scrape(url):
 	for date in sorted(_dates):
 		dateIndex, dateNode = _dates[date]
 		
-		output += compFormat(" <day date=\"{}\">\n", date)
-		
 		for categoryIndex,category in enumerate(categories):
 			trIndex = categoryIndex + 1
 			tdIndex = dateIndex
 			meals = table.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
 			
-			output += compFormat("  <category name=\"{}\">\n", category)
-			
-			for meal in meals:
-				name = meal.xpath(".//strong")
-				###zusatz = meal.xpath(".//a[@class='zusatz']")
-				prices = meal.xpath(".//span[@class='mensa_preise']")
+			if len(meals) > 0:
+				output += compFormat(" <day date=\"{}\">\n", date)
+				output += compFormat("  <category name=\"{}\">\n", category)
 				
-				if len(name) != 1:
-					raise ScraperStructureChangedError("Could not find name for meal")
-				###if len(zusatz) < 1:
-				###	raise ScraperStructureChangedError("Could not find zusatz for meal")
-				if len(prices) != 1:
-					raise ScraperStructureChangedError("Could not find prices for meal")
+				for meal in meals:
+					name = meal.xpath(".//strong")
+					###zusatz = meal.xpath(".//a[@class='zusatz']")
+					prices = meal.xpath(".//span[@class='mensa_preise']")
+					
+					if len(name) != 1:
+						raise ScraperStructureChangedError("Could not find name for meal")
+					###if len(zusatz) < 1:
+					###	raise ScraperStructureChangedError("Could not find zusatz for meal")
+					if len(prices) != 1:
+						raise ScraperStructureChangedError("Could not find prices for meal")
+					
+					_name = name[0]
+					name = name[0].text
+					if name is None:
+						name = ""
+					prices = prices[0].text
+					
+					output += "   <meal>\n"
+					output += compFormat("    <name>{name}</name>\n", name = name.encode("utf-8"))
+					# output += "    <note />\n"
+					
+					for price in priceRe.findall(prices):
+						output += compFormat("    <price>{}</price>\n", price)
+					
+					output += "   </meal>\n"
 				
-				_name = name[0]
-				name = name[0].text
-				if name is None:
-					name = ""
-				prices = prices[0].text
-				
-				output += "   <meal>\n"
-				output += compFormat("    <name>{name}</name>\n", name = name.encode("utf-8"))
-				output += "    <note />\n"
-				
-				for price in priceRe.findall(prices):
-					output += compFormat("    <price>{}</price>\n", price)
-				
-				output += "   </meal>\n"
-			output += "  </category>\n"
-		
-		output += " </day>\n"
+				output += "  </category>\n"
+				output += " </day>\n"
 	
 	return output
 
