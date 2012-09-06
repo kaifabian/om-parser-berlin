@@ -124,7 +124,7 @@ def scrape(url):
 			raise ScraperStructureChangedError(compFormat("Could not parse date {}", repr(date.text)))
 		
 		day,month,year = map(lambda w: int(dateText.group(w)), ["day", "month", "year", ])
-		year += 2000
+		year = year + 2000 if year < 1900 else year
 		dateText = compFormat("{year:04}-{month:02}-{day:02}", day = day, month = month, year = year)
 		
 		parent = date.getparent()
