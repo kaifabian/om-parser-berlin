@@ -236,7 +236,7 @@ def scrape_meta(name, urls):
 def scrape_mensa(name, cacheTimeout = 15*60):
 	cacheName = name.replace("/", "_").replace("\\", "_")
 	cacheDir = os.path.join(os.path.dirname(__file__), "cache")
-	cacheFile = compFormat("{name}.xml", name=cacheName)	
+	cacheFile = compFormat("{name}.xml", name=cacheName)
 	cachePath = os.path.join(cacheDir, cacheFile)
 
 	if os.path.isfile(cachePath):
