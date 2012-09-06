@@ -22,7 +22,7 @@ meta_names = {
 	'fu_cafe_gary': 'cafeteria_wirtschaftswissenschaften_fu',
 
 	'tu': 'mensa_tu_hardenbergstrasse', #hardenberg
-	'tu_cafeteria': 'tu_cafeteria', # franklin
+	'cafeteria_tu': 'cafeteria_tu', # franklin
 	'tu_ackerstr': 'cafeteria_tu_ackerstrasse', # cafe!
 	'tu_cafe_erp': 'cafeteria_ernst_reuter_platz', # ernst reuter
 	'tu_cafe_skyline': 'cafeteria_tu_skyline',
