@@ -271,13 +271,8 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 	except Exception, e:
 		pass
 
-	try:
-		output += scrape(url1)
-		output += scrape(url2)
-		pass
-	except Exception, e:
-		raise e
-		pass
+	output += scrape(url1)
+	output += scrape(url2)
 	output += "</cafeteria>\n"
 
 	if cacheTimeout > 0:
