@@ -3,6 +3,7 @@ import sys,os
 from BeautifulSoup import *
 import libxml2,urllib2
 from lxml.html import soupparser
+from xml.sax.saxutils import escape, quoteattr
 import time
 
 curr_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/woche.html"
@@ -154,8 +155,8 @@ def scrape(url):
 			meals = table.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
 			
 			if len(meals) > 0:
-				output += compFormat(" <day date=\"{}\">\n", date)
-				output += compFormat("  <category name=\"{}\">\n", category)
+				output += compFormat(" <day date={}>\n", quoteattr(date))
+				output += compFormat("  <category name={}>\n", quoteattr(category))
 				
 				for meal in meals:
 					name = meal.xpath(".//strong")
@@ -176,11 +177,11 @@ def scrape(url):
 					prices = prices[0].text
 					
 					output += "   <meal>\n"
-					output += compFormat("    <name>{name}</name>\n", name = name.encode("utf-8"))
+					output += compFormat("    <name>{name}</name>\n", name = escape(name.encode("utf-8")))
 					# output += "    <note />\n"
 					
 					for price in priceRe.findall(prices):
-						output += compFormat("    <price>{}</price>\n", price)
+						output += compFormat("    <price>{}</price>\n", escape(price))
 					
 					output += "   </meal>\n"
 				
