@@ -12,8 +12,20 @@ def serve_error():
     print "Content-Type: text/plain; charset=utf-8"
     print "Content-Disposition: inline"
     print ""
+    print "QUEUE_FATAL"
+    print ""
     print "Something went wrong:"
     traceback.print_exc()
+    sys.exit(0)
+
+def serve(status,text):
+    print "Status: 200 OK"
+    print "Content-Type: text/plain; charset=utf-8"
+    print "Content-Disposition: inline"
+    print ""
+    print status
+    print ""
+    print text,
     sys.exit(0)
 
 try:
@@ -24,15 +36,15 @@ try:
     request_filename = "-x-github-pull-queue-" + hashlib.md5(location).hexdigest().lower() + ".git"
     request_dir = tempfile.gettempdir()
     request_path = os.path.join(request_dir, request_filename)
-    ## f = tempfile.mkstemp(suffix = '.git', prefix='-x-github-queue-', text=True)
+    
+    if os.path.isfile(request_path):
+        serve("QUEUE_OK", "The request was already queued.")
+    
     f = open(request_path, "w")
     f.write(location)
     f.flush()
     f.close()
     
-    print "Content-Type: text/plain; charset=utf-8"
-    print "Content-Disposition: inline"
-    print ""
-    print "Your request has been queued."
+    serve("QUEUE_OK", "Your request has been queued.")
 except Exception:
     serve_error()
