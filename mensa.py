@@ -181,16 +181,23 @@ def scrape(url):
                     name = name[0].text
                     if name is None:
                         name = ""
-                    prices = prices[0].text
+                    prices = " ".join(map(lambda p: p.text, prices))
                     
                     output += "    <meal>\n"
                     output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
                     # output += "    <note />\n"
                     
                     roles = ("student", "employee", "other", )
-                    for index,price in enumerate(priceRe.findall(prices)):
-                        role = roles[index % len(roles)]
-                        output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                    priceList = priceRe.findall(prices)
+                    if len(priceList) > 1:
+                        for index,price in enumerate(priceList):
+                            role = roles[index % len(roles)]
+                            output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                    elif priceList:
+                        price = priceList[0]
+                        for role in roles:
+                            output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                        
                     
                     output += "    </meal>\n"
                 
