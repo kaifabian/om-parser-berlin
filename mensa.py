@@ -223,20 +223,20 @@ def scrape_meta(name, urls):
     telefon = telefon[0].strip().encode("utf-8")
     
     output = " <!--\n"
-    output += "  <om-proposed-v2:provider-info xmlns:om-proposed-v2=\"http://mirror.space-port.eu/~om/om-proposed-v2\">\n"
-    output += "   <om-proposed-v2:name><![CDATA[Kai Fabian]]></om-proposed-v2:name>\n"
-    output += "   <om-proposed-v2:contact type=\"email\"><![CDATA[kai@openmensa.org]]></om-proposed-v2:contact>\n"
-    output += "  </om-proposed-v2:provider-info>\n"
+    output += "  <om-proposed:provider-info xmlns:om-proposed=\"http://mirror.space-port.eu/~om/om-proposed\">\n"
+    output += "   <om-proposed:name><![CDATA[Kai Fabian]]></om-proposed:name>\n"
+    output += "   <om-proposed:contact type=\"email\"><![CDATA[kai@openmensa.org]]></om-proposed:contact>\n"
+    output += "  </om-proposed:provider-info>\n"
     output += "\n"
-    output += "  <om-proposed-v2:cafeteria-info xmlns:om-proposed-v2=\"http://mirror.space-port.eu/~om/om-proposed-v2\">\n"
-    output += "   <om-proposed-v2:name><![CDATA[" + mensaname + "]]></om-proposed-v2:name>\n"
-    output += "   <om-proposed-v2:street><![CDATA[" + strasse + "]]></om-proposed-v2:street>\n"
-    output += "   <om-proposed-v2:zip>" + str(plz) + "</om-proposed-v2:zip>\n"
-    output += "   <om-proposed-v2:city><![CDATA[" + ort + "]]></om-proposed-v2:city>\n"
-    output += "   <om-proposed-v2:contact type=\"phone\"><![CDATA[" + telefon + "]]></om-proposed-v2:contact>\n"
+    output += "  <om-proposed:cafeteria-info xmlns:om-proposed=\"http://mirror.space-port.eu/~om/om-proposed\">\n"
+    output += "   <om-proposed:name><![CDATA[" + mensaname + "]]></om-proposed:name>\n"
+    output += "   <om-proposed:street><![CDATA[" + strasse + "]]></om-proposed:street>\n"
+    output += "   <om-proposed:zip>" + str(plz) + "</om-proposed:zip>\n"
+    output += "   <om-proposed:city><![CDATA[" + ort + "]]></om-proposed:city>\n"
+    output += "   <om-proposed:contact type=\"phone\"><![CDATA[" + telefon + "]]></om-proposed:contact>\n"
     for url in urls:
-        output += "   <om-proposed-v2:datasource type=\"text/html\" transport=\"http\"><![CDATA[" + url + "]]></om-proposed-v2:datasource>\n"
-    output += " </om-proposed-v2:cafeteria-info>\n"
+        output += "   <om-proposed:datasource type=\"text/html\" transport=\"http\"><![CDATA[" + url + "]]></om-proposed:datasource>\n"
+    output += " </om-proposed:cafeteria-info>\n"
     output += " -->\n\n"
     
     return output
