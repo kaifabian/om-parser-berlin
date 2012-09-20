@@ -1,3 +1,4 @@
 RewriteEngine on
 RewriteRule ^(.*).xml$ handle.py
 RewriteRule .*\.git/.* - [F]
+RewriteRule ^(.*)x-post-receive(.*)$ git.py
