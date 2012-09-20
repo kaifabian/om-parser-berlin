@@ -167,13 +167,10 @@ def scrape(url):
                 
                 for meal in meals:
                     name = meal.xpath(".//strong")
-                    ###zusatz = meal.xpath(".//a[@class='zusatz']")
                     prices = meal.xpath(".//span[@class='mensa_preise']")
                     
                     if len(name) != 1:
                         raise ScraperStructureChangedError("Could not find name for meal")
-                    ###if len(zusatz) < 1:
-                    ###    raise ScraperStructureChangedError("Could not find zusatz for meal")
                     if len(prices) != 1:
                         raise ScraperStructureChangedError("Could not find prices for meal")
                     
@@ -185,7 +182,6 @@ def scrape(url):
                     
                     output += "    <meal>\n"
                     output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
-                    # output += "    <note />\n"
                     
                     roles = ("student", "employee", "other", )
                     priceList = priceRe.findall(prices)
