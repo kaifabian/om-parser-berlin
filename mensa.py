@@ -162,8 +162,8 @@ def scrape(url):
             meals = table.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
             
             if len(meals) > 0:
-                output += compFormat(" <day date={}>\n", quoteattr(date))
-                output += compFormat("  <category name={}>\n", quoteattr(category))
+                output += compFormat("  <day date={}>\n", quoteattr(date))
+                output += compFormat("   <category name={}>\n", quoteattr(category))
                 
                 for meal in meals:
                     name = meal.xpath(".//strong")
@@ -183,17 +183,19 @@ def scrape(url):
                         name = ""
                     prices = prices[0].text
                     
-                    output += "   <meal>\n"
-                    output += compFormat("    <name>{name}</name>\n", name = escape(name.encode("utf-8")))
+                    output += "    <meal>\n"
+                    output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
                     # output += "    <note />\n"
                     
-                    for price in priceRe.findall(prices):
-                        output += compFormat("    <price>{}</price>\n", escape(price))
+                    roles = ("student", "employee", "other", )
+                    for index,price in enumerate(priceRe.findall(prices)):
+                        role = roles[index % len(roles)]
+                        output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
                     
-                    output += "   </meal>\n"
+                    output += "    </meal>\n"
                 
-                output += "  </category>\n"
-                output += " </day>\n"
+                output += "   </category>\n"
+                output += "  </day>\n"
     
     return output
 
@@ -223,20 +225,13 @@ def scrape_meta(name, urls):
     telefon = telefon[0].strip().encode("utf-8")
     
     output = " <!--\n"
-    output += "  <om-proposed:provider-info xmlns:om-proposed=\"http://mirror.space-port.eu/~om/om-proposed\">\n"
-    output += "   <om-proposed:name><![CDATA[Kai Fabian]]></om-proposed:name>\n"
-    output += "   <om-proposed:contact type=\"email\"><![CDATA[kai@openmensa.org]]></om-proposed:contact>\n"
-    output += "  </om-proposed:provider-info>\n"
-    output += "\n"
-    output += "  <om-proposed:cafeteria-info xmlns:om-proposed=\"http://mirror.space-port.eu/~om/om-proposed\">\n"
-    output += "   <om-proposed:name><![CDATA[" + mensaname + "]]></om-proposed:name>\n"
-    output += "   <om-proposed:street><![CDATA[" + strasse + "]]></om-proposed:street>\n"
-    output += "   <om-proposed:zip>" + str(plz) + "</om-proposed:zip>\n"
-    output += "   <om-proposed:city><![CDATA[" + ort + "]]></om-proposed:city>\n"
-    output += "   <om-proposed:contact type=\"phone\"><![CDATA[" + telefon + "]]></om-proposed:contact>\n"
-    for url in urls:
-        output += "   <om-proposed:datasource type=\"text/html\" transport=\"http\"><![CDATA[" + url + "]]></om-proposed:datasource>\n"
-    output += " </om-proposed:cafeteria-info>\n"
+    output += "   <om-proposed:info xmlns:om-proposed=\"http://mirror.space-port.eu/~om/om-proposed\">\n"
+    output += "    <om-proposed:name><![CDATA[" + mensaname + "]]></om-proposed:name>\n"
+    output += "    <om-proposed:street><![CDATA[" + strasse + "]]></om-proposed:street>\n"
+    output += "    <om-proposed:zip>" + str(plz) + "</om-proposed:zip>\n"
+    output += "    <om-proposed:city><![CDATA[" + ort + "]]></om-proposed:city>\n"
+    output += "    <om-proposed:contact type=\"phone\"><![CDATA[" + telefon + "]]></om-proposed:contact>\n"
+    output += "  </om-proposed:info>\n"
     output += " -->\n\n"
     
     return output
@@ -260,10 +255,11 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 
     output = \
 """<?xml version="1.0" encoding="UTF-8"?>
-<cafeteria version="1.0"
-            xmlns="http://openmensa.org/open-mensa-v1"
+<openmensa version="2.0"
+            xmlns="http://openmensa.org/open-mensa-v2"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://openmensa.org/open-mensa-v1 http://openmensa.org/open-mensa-v1.xsd">
+            xsi:schemaLocation="http://openmensa.org/open-mensa-v2 http://openmensa.org/open-mensa-v2.xsd">
+ <canteen>
 """
 
     url1 = compFormat(curr_url, mensa=name)
@@ -283,7 +279,8 @@ def scrape_mensa(name, cacheTimeout = 15*60):
     if not name in meals_disabled:
         output += scrape(url1)
         output += scrape(url2)
-    output += "</cafeteria>\n"
+    output += " </canteen>\n"
+    output += "</openmensa>\n"
 
     if cacheTimeout > 0:
         handle = open(cachePath, "wb")
