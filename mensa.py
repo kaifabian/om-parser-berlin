@@ -10,6 +10,13 @@ curr_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/w
 next_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/naechste_woche.html"
 meta_url = "http://www.studentenwerk-berlin.de/mensen/mensen_cafeterien/{mensa}/index.html"
 
+meals_disabled = [
+	"cafeteria_tu",
+]
+
+meta_disabled = [
+]
+
 meta_names = {
 	'fu1': 'fu1', #veggie no 1 van't hoff
 	'fu2': 'mensa_fu_2', #otto-von-simson
@@ -177,11 +184,11 @@ def scrape(url):
 					prices = prices[0].text
 					
 					output += "   <meal>\n"
-					output += compFormat("    <name>{name}</name>\n", name = escape(name.encode("utf-8")))
-					# output += "    <note />\n"
+					output += compFormat("	<name>{name}</name>\n", name = escape(name.encode("utf-8")))
+					# output += "	<note />\n"
 					
 					for price in priceRe.findall(prices):
-						output += compFormat("    <price>{}</price>\n", escape(price))
+						output += compFormat("	<price>{}</price>\n", escape(price))
 					
 					output += "   </meal>\n"
 				
@@ -268,12 +275,14 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 			meta_name = name
 		else:
 			meta_name = meta_names[name]
-		output += scrape_meta(meta_name, urls)
+		if not name in meta_disabled:
+			output += scrape_meta(meta_name, urls)
 	except Exception, e:
 		pass
 
-	output += scrape(url1)
-	output += scrape(url2)
+	if not name in meals_disabled:
+		output += scrape(url1)
+		output += scrape(url2)
 	output += "</cafeteria>\n"
 
 	if cacheTimeout > 0:
