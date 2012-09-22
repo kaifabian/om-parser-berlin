@@ -155,50 +155,61 @@ def scrape(url):
     
     for date in sorted(_dates):
         dateIndex, dateNode = _dates[date]
+        hasMeals = False
+        
+        mealXpath = lambda elem, trIndex, tdIndex: elem.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
         
         for categoryIndex,category in enumerate(categories):
-            trIndex = categoryIndex + 1
-            tdIndex = dateIndex
-            meals = table.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
-            
-            if len(meals) > 0:
-                output += compFormat("  <day date={}>\n", quoteattr(date))
-                output += compFormat("   <category name={}>\n", quoteattr(category))
+            if len(mealXpath(table, categoryIndex + 1, dateIndex)) > 0:
+                hasMeals = True
+        
+        output += compFormat("  <day date={}>\n", quoteattr(date))
+        
+        if hasMeals:
+            for categoryIndex,category in enumerate(categories):
+                trIndex = categoryIndex + 1
+                tdIndex = dateIndex
+                meals = mealXpath(table, trIndex, tdIndex) #table.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
                 
-                for meal in meals:
-                    name = meal.xpath(".//strong")
-                    prices = meal.xpath(".//span[@class='mensa_preise']")
+                if len(meals) > 0:
+                    output += compFormat("   <category name={}>\n", quoteattr(category))
                     
-                    if len(name) != 1:
-                        raise ScraperStructureChangedError("Could not find name for meal")
-                    if len(prices) != 1:
-                        raise ScraperStructureChangedError("Could not find prices for meal")
-                    
-                    _name = name[0]
-                    name = name[0].text
-                    if name is None:
-                        name = ""
-                    prices = " ".join(map(lambda p: p.text, prices))
-                    
-                    output += "    <meal>\n"
-                    output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
-                    
-                    roles = ("student", "employee", "other", )
-                    priceList = priceRe.findall(prices)
-                    if len(priceList) > 1:
-                        for index,price in enumerate(priceList):
-                            role = roles[index % len(roles)]
-                            output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
-                    elif priceList:
-                        price = priceList[0]
-                        for role in roles:
-                            output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                    for meal in meals:
+                        name = meal.xpath(".//strong")
+                        prices = meal.xpath(".//span[@class='mensa_preise']")
                         
+                        if len(name) != 1:
+                            raise ScraperStructureChangedError("Could not find name for meal")
+                        if len(prices) != 1:
+                            raise ScraperStructureChangedError("Could not find prices for meal")
+                        
+                        _name = name[0]
+                        name = name[0].text
+                        if name is None:
+                            name = ""
+                        prices = " ".join(map(lambda p: p.text, prices))
+                        
+                        output += "    <meal>\n"
+                        output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
+                        
+                        roles = ("student", "employee", "other", )
+                        priceList = priceRe.findall(prices)
+                        if len(priceList) > 1:
+                            for index,price in enumerate(priceList):
+                                role = roles[index % len(roles)]
+                                output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                        elif priceList:
+                            price = priceList[0]
+                            for role in roles:
+                                output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                            
+                        
+                        output += "    </meal>\n"
                     
-                    output += "    </meal>\n"
-                
-                output += "   </category>\n"
-                output += "  </day>\n"
+                    output += "   </category>\n"
+        else:
+            output += "   <closed />\n"
+        output += "  </day>\n"
     
     return output
 
