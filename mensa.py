@@ -10,6 +10,8 @@ curr_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/w
 next_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/naechste_woche.html"
 meta_url = "http://www.studentenwerk-berlin.de/mensen/mensen_cafeterien/{mensa}/index.html"
 
+xsd_location = "http://openmensa.org/open-mensa-v2.xsd"
+
 meals_disabled = [
     "cafeteria_tu",
 ]
@@ -266,14 +268,15 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 
             return content
 
-    output = \
+    output = compFormat( \
 """<?xml version="1.0" encoding="UTF-8"?>
 <openmensa version="2.0"
             xmlns="http://openmensa.org/open-mensa-v2"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://openmensa.org/open-mensa-v2 http://openmensa.org/open-mensa-v2.xsd">
+            xsi:schemaLocation="http://openmensa.org/open-mensa-v2 {xsdLocation}">
  <canteen>
-"""
+""", \
+        xsdLocation = xsd_location)
 
     url1 = compFormat(curr_url, mensa=name)
     url2 = compFormat(next_url, mensa=name)
@@ -302,10 +305,58 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 
     return output
 
+def canValidate():
+    try:
+        from lxml import etree
+        from cStringIO import StringIO
+    except ImportError, e:
+        print e
+        return False
+    
+    return True
+
+def validate(xmldata, schema):
+    try:
+        from lxml import etree
+        from cStringIO import StringIO
+    except ImportError:
+        return False
+    
+    scs = etree.parse(StringIO(schema))
+    sch = etree.XMLSchema(scs)
+    xml = etree.parse(StringIO(xmldata))
+    
+    try:
+        sch.assertValid(xml)
+        return True
+    except etree.DocumentInvalid:
+        print sch.error_log
+        return False
+
 if __name__ == "__main__" and "test" in sys.argv:
+    doValidation = False
+    if canValidate():
+        doValidation = True
+        
+        try:
+            import urllib2
+            xsdh = urllib2.urlopen(xsd_location)
+            xsd = xsdh.read()
+            xsdh.close()
+        except:
+            print "ERROR"
+            doValidation = False
+    
+    if not doValidation:
+        print "[ERR ] cannot validate!"
+    
     for mensa_name in meta_names:
         print "---", "Testing", mensa_name, "---"
         mensa = scrape_mensa(mensa_name, cacheTimeout = -1)
+        
+        if doValidation:
+            if not validate(mensa, xsd):
+                raise Exception("Validation Exception")
         
         f = open(compFormat("test-{}.xml", mensa_name), "wb")
         f.write(mensa)
