@@ -185,26 +185,25 @@ def scrape(url):
                         
                         _name = name[0]
                         name = name[0].text
-                        if name is None:
-                            name = ""
-                        prices = " ".join(map(lambda p: p.text, prices))
-                        
-                        output += "    <meal>\n"
-                        output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
-                        
-                        roles = ("student", "employee", "other", )
-                        priceList = priceRe.findall(prices)
-                        if len(priceList) > 1:
-                            for index,price in enumerate(priceList):
-                                role = roles[index % len(roles)]
-                                output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
-                        elif priceList:
-                            price = priceList[0]
-                            for role in roles:
-                                output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                        if name:
+                            prices = " ".join(map(lambda p: p.text, prices))
                             
-                        
-                        output += "    </meal>\n"
+                            output += "    <meal>\n"
+                            output += compFormat("     <name>{name}</name>\n", name = escape(name.encode("utf-8")))
+                            
+                            roles = ("student", "employee", "other", )
+                            priceList = priceRe.findall(prices)
+                            if len(priceList) > 1:
+                                for index,price in enumerate(priceList):
+                                    role = roles[index % len(roles)]
+                                    output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                            elif priceList:
+                                price = priceList[0]
+                                for role in roles:
+                                    output += compFormat("     <price role={role}>{price}</price>\n", price = escape(price), role = quoteattr(role))
+                                
+                            
+                            output += "    </meal>\n"
                     
                     output += "   </category>\n"
         else:
