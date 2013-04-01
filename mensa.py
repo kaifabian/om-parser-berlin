@@ -13,7 +13,6 @@ meta_url = "http://www.studentenwerk-berlin.de/mensen/mensen_cafeterien/{mensa}/
 xsd_location = "http://openmensa.org/open-mensa-v2.xsd"
 
 meals_disabled = [
-    "cafeteria_tu",
 ]
 
 meta_disabled = [
@@ -129,6 +128,9 @@ def scrape(url):
     dateRe = re.compile("(?P<weekName>[A-Za-z]+,?) (?P<day>[0-9]+)\.(?P<month>[0-9]+)\.(?P<year>[0-9]+)")
     
     for date in dates:
+        if not date.text:
+            continue
+        
         dateText = dateRe.match(date.text)
         if not dateText:
             raise ScraperStructureChangedError(compFormat("Could not parse date {}", repr(date.text)))
@@ -292,9 +294,22 @@ def scrape_mensa(name, cacheTimeout = 15*60):
     except Exception, e:
         pass
 
+    meals = list()
     if not name in meals_disabled:
-        output += scrape(url1)
-        output += scrape(url2)
+        try:
+            meals.append(scrape(url1))
+        except:
+            pass
+        try:
+            meals.append(scrape(url2))
+        except:
+            pass
+        
+        if len(meals) < 1:
+            raise ScraperStructureChangedError("Cannot scrape anything :(")
+        else:
+            output += "\n".join(meals)
+    
     output += " </canteen>\n"
     output += "</openmensa>\n"
 
@@ -352,12 +367,16 @@ if __name__ == "__main__" and "test" in sys.argv:
     
     for mensa_name in meta_names:
         print "---", "Testing", mensa_name, "---"
-        mensa = scrape_mensa(mensa_name, cacheTimeout = -1)
-        
-        if doValidation:
-            if not validate(mensa, xsd):
-                raise Exception("Validation Exception")
-        
-        f = open(compFormat("test-{}.xml", mensa_name), "wb")
-        f.write(mensa)
-        f.close()
+        try:
+            mensa = scrape_mensa(mensa_name, cacheTimeout = -1)
+            
+            if doValidation:
+                if not validate(mensa, xsd):
+                    raise Exception("Validation Exception")
+            
+            f = open(compFormat("test-{}.xml", mensa_name), "wb")
+            f.write(mensa)
+            f.close()
+            print "SUCCESS"
+        except:
+            print "FAILURE"
