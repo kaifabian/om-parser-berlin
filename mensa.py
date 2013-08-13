@@ -77,34 +77,6 @@ meta_names = {
 
 noMealsRe = re.compile(r"(.*)(zur\s+zeit)(.*)(keine\s+speisepl.+ne)(.*)", re.IGNORECASE)
 
-def compFormat(instr, *args, **kwargs):
-    if hasattr(instr, "format"):
-        return instr.format(*args, **kwargs)
-
-    slices = instr.split("{}")
-    instr = ""
-    if len(slices) - 1 == len(args):
-        for i in range(0, len(args)):
-            instr += slices[i]
-            instr += str(args[i])
-        instr += slices[-1]
-
-    for i in range(0, len(args)):
-        instr = instr.replace("{" + str(i) + "}", str(args[i]))
-
-    for name in kwargs:
-        value = str(kwargs[name])
-        instr = instr.replace("{" + name + "}", value)
-        x = re.compile("{" + re.escape(name) + ":(?P<pad>.)(?P<length>[0-9]+)}")
-        y = set(x.findall(instr))
-        if len(y) > 0:
-            for pad, length in y:
-                length = int(length)
-                padded = (pad * (length - len(value))) + value
-                instr = instr.replace("{" + name + ":" + pad + str(length) + "}", padded)
-
-    return instr
-
 def dateStringToDate(datestr):
     y, m, d = map(int, datestr.split("-", 2))
     return datetime.date(y, m, d)
@@ -115,15 +87,15 @@ class ScraperError(Exception):
 class ScraperStructureChangedError(ScraperError):
     pass
 
-def getContents(url):
+def urlGetContents(url):
     handle = urllib2.urlopen(url)
     content = handle.read().decode('utf-8')
     handle.close()
 
     return BeautifulSoup(content)
 
-def scrape(url, builder, timeSpan=None):
-    content = str(getContents(url))
+def scrapeUrl(url, builder, timeSpan=None):
+    content = str(urlGetContents(url))
 
     if noMealsRe.search(content):
         if timeSpan:
@@ -140,13 +112,13 @@ def scrape(url, builder, timeSpan=None):
     tables = xml.xpath("//table[contains(@class, 'mensa_week_table')]")
 
     if len(tables) != 1:
-        raise ScraperStructureChangedError(compFormat("Asserting 1 table, got {}", len(tables)))
+        raise ScraperStructureChangedError("Asserting 1 table, got {}".format(len(tables)))
 
     table = tables[0]
 
     dates = table.xpath("//thead/tr/th[contains(@class, 'mensa_week_head_col')]")
     if not len(dates) == 5:
-        raise ScraperStructureChangedError(compFormat("Asserting 5 dates, got {}", len(dates)))
+        raise ScraperStructureChangedError("Asserting 5 dates, got {}".format(len(dates)))
 
     _dates = dict()
     dateRe = re.compile("(?P<weekName>[A-Za-z]+,?) (?P<day>[0-9]+)\.(?P<month>[0-9]+)\.(?P<year>[0-9]+)")
@@ -157,11 +129,11 @@ def scrape(url, builder, timeSpan=None):
 
         dateText = dateRe.match(date.text)
         if not dateText:
-            raise ScraperStructureChangedError(compFormat("Could not parse date {}", repr(date.text)))
+            raise ScraperStructureChangedError("Could not parse date {}".format(repr(date.text)))
 
         day,month,year = map(lambda w: int(dateText.group(w)), ["day", "month", "year", ])
         year = year + 2000 if year < 1900 else year
-        dateText = compFormat("{year:04}-{month:02}-{day:02}", day = day, month = month, year = year)
+        dateText = "{year:04}-{month:02}-{day:02}".format(day = day, month = month, year = year)
 
         parent = date.getparent()
         dateIndex = None
@@ -170,7 +142,7 @@ def scrape(url, builder, timeSpan=None):
                 dateIndex = index
 
         if not dateIndex:
-            raise ScraperStructureChangedError(compFormat("Could not find index for {}", dateText))
+            raise ScraperStructureChangedError("Could not find index for {}".format(dateText))
 
         _dates[dateText] = (dateIndex, date)
 
@@ -185,7 +157,7 @@ def scrape(url, builder, timeSpan=None):
 
         dateAsDate = dateStringToDate(date)
 
-        mealXpath = lambda elem, trIndex, tdIndex: elem.xpath(compFormat("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]", tri = trIndex, tdi = tdIndex))
+        mealXpath = lambda elem, trIndex, tdIndex: elem.xpath("//tr[{tri}]/td[{tdi}]/p[contains(@class, 'mensa_speise')]".format(tri = trIndex, tdi = tdIndex))
 
         for categoryIndex,category in enumerate(categories):
             if len(mealXpath(table, categoryIndex + 1, dateIndex)) > 0:
@@ -228,47 +200,10 @@ def scrape(url, builder, timeSpan=None):
 
     return True
 
-def scrape_meta(name, urls):
-    url = compFormat(meta_url, mensa = name)
-    urls.append(url)
-
-    content = str(getContents(url))
-    xml = soupparser.fromstring(content)
-
-    mensaname = xml.xpath('//div[contains(@class, "einrichtung")]/h1/text()')
-    adresse = xml.xpath('//p[contains(@class, "adresse")]/text()')
-    telefon = xml.xpath('//p[contains(@class, "telefon")]/text()')
-    if len(mensaname) < 1:
-        raise ScraperStructureChangedError("Name not found in meta")
-    if len(adresse) < 2:
-        raise ScraperStructureChangedError("Address not found in meta")
-    if len(telefon) < 1:
-        raise ScraperStructureChangedError("Telephone not found in meta")
-
-    mensaname = mensaname[0].strip().encode("utf-8")
-    strasse = adresse[0].strip().encode("utf-8")
-    plzort = adresse[1].strip()
-    plz,ort = plzort.split(" ", 1)
-    plz = int(plz)
-    ort = ort.encode("utf-8")
-    telefon = telefon[0].strip().encode("utf-8")
-
-    output = " <!--\n"
-    output += "   <om-proposed:info xmlns:om-proposed=\"http://mirror.space-port.eu/~om/om-proposed\">\n"
-    output += "    <om-proposed:name><![CDATA[" + mensaname + "]]></om-proposed:name>\n"
-    output += "    <om-proposed:street><![CDATA[" + strasse + "]]></om-proposed:street>\n"
-    output += "    <om-proposed:zip>" + str(plz) + "</om-proposed:zip>\n"
-    output += "    <om-proposed:city><![CDATA[" + ort + "]]></om-proposed:city>\n"
-    output += "    <om-proposed:contact type=\"phone\"><![CDATA[" + telefon + "]]></om-proposed:contact>\n"
-    output += "  </om-proposed:info>\n"
-    output += " -->\n\n"
-
-    return output
-
-def scrape_mensa(name, cacheTimeout = 15*60):
+def scrapeMensaByName(name, cacheTimeout = 15*60):
     cacheName = name.replace("/", "_").replace("\\", "_")
     cacheDir = os.path.join(os.path.dirname(__file__), "cache")
-    cacheFile = compFormat("{name}.xml", name=cacheName)
+    cacheFile = "{name}.xml".format(name=cacheName)
     cachePath = os.path.join(cacheDir, cacheFile)
 
     if os.path.isfile(cachePath):
@@ -282,8 +217,8 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 
             return content
 
-    currentWeekUrl = compFormat(curr_url, mensa=name)
-    nextWeekUrl = compFormat(next_url, mensa=name)
+    currentWeekUrl = curr_url.format(mensa=name)
+    nextWeekUrl = next_url.format(mensa=name)
 
     lastMonday = datetime.date.today() + datetime.timedelta(days=-datetime.date.today().weekday())
     nextMonday = lastMonday + datetime.timedelta(weeks=1)
@@ -301,8 +236,8 @@ def scrape_mensa(name, cacheTimeout = 15*60):
 
     builder = pyopenmensa.feed.BaseBuilder()
     if not name in meals_disabled:
-        scrape(currentWeekUrl, builder, timeSpan=currentWeek)
-        scrape(nextWeekUrl, builder, timeSpan=nextWeek)
+        scrapeUrl(currentWeekUrl, builder, timeSpan=currentWeek)
+        scrapeUrl(nextWeekUrl, builder, timeSpan=nextWeek)
 
     output = builder.toXMLFeed()
 
@@ -361,13 +296,13 @@ if __name__ == "__main__" and "test" in sys.argv:
     for mensa_name in meta_names:
         print "---", "Testing", mensa_name, "---"
         try:
-            mensa = scrape_mensa(mensa_name, cacheTimeout = -1)
+            mensa = scrapeMensaByName(mensa_name, cacheTimeout = -1)
 
             if doValidation:
                 if not validate(mensa, xsd):
                     raise Exception("Validation Exception")
 
-            f = open(compFormat("test-{}.xml", mensa_name), "wb")
+            f = open("test-{}.xml".format(mensa_name), "wb")
             f.write(mensa)
             f.close()
             print "SUCCESS"
