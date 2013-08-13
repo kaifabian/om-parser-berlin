@@ -13,19 +13,19 @@ from xml.sax.saxutils import escape, quoteattr
 
 import pyopenmensa.feed
 
-curr_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/woche.html"
-next_url = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/naechste_woche.html"
-meta_url = "http://www.studentenwerk-berlin.de/mensen/mensen_cafeterien/{mensa}/index.html"
+currUrl = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/woche.html"
+nextUrl = "http://www.studentenwerk-berlin.de/print/mensen/speiseplan/{mensa}/naechste_woche.html"
+metaUrl = "http://www.studentenwerk-berlin.de/mensen/mensen_cafeterien/{mensa}/index.html"
 
-xsd_location = "http://openmensa.org/open-mensa-v2.xsd"
+xsdLocation = "http://openmensa.org/open-mensa-v2.xsd"
 
-meals_disabled = [
+mealsDisabled = [
 ]
 
-meta_disabled = [
+metaDisabled = [
 ]
 
-meta_names = {
+metaNames = {
     'fu1': 'fu1', #veggie no 1 van't hoff
     'fu2': 'mensa_fu_2', #otto-von-simson
     'fu_lankwitz': 'mensa_fu_lankwitz',
@@ -217,8 +217,8 @@ def scrapeMensaByName(name, cacheTimeout = 15*60):
 
             return content
 
-    currentWeekUrl = curr_url.format(mensa=name)
-    nextWeekUrl = next_url.format(mensa=name)
+    currentWeekUrl = currUrl.format(mensa=name)
+    nextWeekUrl = nextUrl.format(mensa=name)
 
     lastMonday = datetime.date.today() + datetime.timedelta(days=-datetime.date.today().weekday())
     nextMonday = lastMonday + datetime.timedelta(weeks=1)
@@ -227,15 +227,15 @@ def scrapeMensaByName(name, cacheTimeout = 15*60):
     nextWeek = (nextMonday, nextMonday + aWorkingWeek)
 
     try:
-        if not meta_names[name]:
+        if not metaNames[name]:
             meta_name = name
         else:
-            meta_name = meta_names[name]
+            meta_name = metaNames[name]
     except Exception, e:
         pass
 
     builder = pyopenmensa.feed.BaseBuilder()
-    if not name in meals_disabled:
+    if not name in mealsDisabled:
         scrapeUrl(currentWeekUrl, builder, timeSpan=currentWeek)
         scrapeUrl(nextWeekUrl, builder, timeSpan=nextWeek)
 
@@ -283,7 +283,7 @@ if __name__ == "__main__" and "test" in sys.argv:
 
         try:
             import urllib2
-            xsdh = urllib2.urlopen(xsd_location)
+            xsdh = urllib2.urlopen(xsdLocation)
             xsd = xsdh.read()
             xsdh.close()
         except:
@@ -293,7 +293,7 @@ if __name__ == "__main__" and "test" in sys.argv:
     if not doValidation:
         print "[ERR ] cannot validate!"
 
-    for mensa_name in meta_names:
+    for mensa_name in metaNames:
         print "---", "Testing", mensa_name, "---"
         try:
             mensa = scrapeMensaByName(mensa_name, cacheTimeout = -1)

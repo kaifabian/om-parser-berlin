@@ -3,7 +3,7 @@ import sys,os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from mensa import scrape_mensa, meta_names
+from mensa import scrapeMensaByName, metaNames
 
 uri = "/index.xml"
 if 'REQUEST_URI' in os.environ:
@@ -14,12 +14,12 @@ mensa = None
 if uri.endswith(".xml"):
     filename = os.path.basename(uri)
     mensa = filename[:-4]
-    if not mensa in meta_names:
+    if not mensa in metaNames:
         mensa = None
 
 if mensa:
     try:
-        data = scrape_mensa(mensa)
+        data = scrapeMensaByName(mensa)
         print "Content-Type: application/xml; charset=utf-8"
         print "Content-Length: "+str(len(data))
         print ""
@@ -45,7 +45,7 @@ else:
     print " <message>Mensa not found</message>"
     print " <debug-data>"
     print "  <list-desc>Valid filenames</list-desc>"
-    for mensa in meta_names:
+    for mensa in metaNames:
         print "  <list-item>" + mensa + ".xml</list-item>"
     print " </debug-data>"
     print "</error>"
