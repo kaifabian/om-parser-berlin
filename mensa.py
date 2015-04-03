@@ -236,7 +236,7 @@ def scrapeMensaByName(name, cacheTimeout = 15*60):
         scrapeUrl(currentWeekUrl, builder, timeSpan=currentWeek)
         scrapeUrl(nextWeekUrl, builder, timeSpan=nextWeek)
 
-    output = builder.toXMLFeed()
+    output = builder.toXMLFeed().encode("utf-8")
 
     if cacheTimeout > 0:
         handle = open(cachePath, "wb")
