@@ -231,7 +231,7 @@ def scrapeMensaByName(name, cacheTimeout = 15*60):
     except Exception, e:
         pass
 
-    builder = pyopenmensa.feed.BaseBuilder()
+    builder = pyopenmensa.feed.LazyBuilder()
     if not name in mealsDisabled:
         scrapeUrl(currentWeekUrl, builder, timeSpan=currentWeek)
         scrapeUrl(nextWeekUrl, builder, timeSpan=nextWeek)
