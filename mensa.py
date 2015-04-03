@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import sys
 import os
 import datetime
@@ -38,13 +38,10 @@ metaNames = {
     'fu_cafe_gary': 'cafeteria_wirtschaftswissenschaften_fu',
 
     'tu': 'mensa_tu_hardenbergstrasse', #hardenberg
-    'cafeteria_tu': 'cafeteria_tu', # franklin
     'tu_ackerstr': 'cafeteria_tu_ackerstrasse', # cafe!
     'tu_cafe_erp': 'cafeteria_ernst_reuter_platz', # ernst reuter
     'tu_cafe_skyline': 'cafeteria_tu_skyline',
-    # fehlt speiseplan:
-    # - cafeteria_tu
-    # - cafeteria_tu_hauptgebaeude
+    'tu_marchstr': 'cafeteria_tu_marchstraße',
 
     'hu_nord': 'mensa_nord',
     'hu_sued': 'mensa_sued',
