@@ -27,3 +27,4 @@ pip-log.txt
 .mr.developer.cfg
 
 cache/*.xml
+test-*.xml
