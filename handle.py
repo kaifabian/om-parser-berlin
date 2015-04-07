@@ -1,13 +1,28 @@
 # -*- coding: utf-8 -*-
-import sys,os
+import sys
+import os
+
+import traceback
+
+import IPy
+
 
 sys.path.insert(0, os.path.dirname(__file__))
-
 from mensa import scrapeMensaByName, metaNames
 
-uri = "/index.xml"
-if 'REQUEST_URI' in os.environ:
-    uri = os.environ['REQUEST_URI']
+
+DEBUG_NETS = [
+    "10.0.0.0/8",
+    "127.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/24",
+]
+
+
+DEBUG_IPS = IPy.IPSet(map(IPy.IP, DEBUG_NETS))
+REQUEST_IP = IPy.IP(os.environ.get('REMOTE_ADDR', '0.0.0.0'))
+
+uri = os.environ.get('REQUEST_URI', '/')
 
 mensa = None
 
@@ -26,14 +41,19 @@ if mensa:
         print data
     except Exception, e:
         print "Status: 404 Not Found"
-        print "Content-Type: application/xml; charset=utf-8"
-        print ""
-        print """<?xml version="1.0" encoding="UTF-8"?>"""
-        print "<error>"
-        print " <code>404</code>"
-        print " <message>Mensa not found</message>"
-        print " <debug-data>" + repr(e) + "</debug-data>"
-        print "</error>"
+        if REQUEST_IP not in DEBUG_IPS:
+            print ""
+        else:
+                print "Content-Type: application/xml; charset=utf-8"
+                print ""
+                print """<?xml version="1.0" encoding="UTF-8"?>"""
+                print "<error>"
+                print " <code>404</code>"
+                print " <message>Mensa not found</message>"
+                print " <debug-data><![CDATA["
+                print traceback.format_exc()
+                print " ]]></debug-data>"
+                print "</error>"
 
 else:
     print "Status: 404 Not Found"
