@@ -191,7 +191,7 @@ def scrapeUrl(url, builder, timeSpan=None):
                                 price = priceList[0]
                                 for role in roles:
                                     prices[role] = pyopenmensa.feed.convertPrice(price)
-                            builder.addMeal(dateAsDate, category, name.encode("utf-8"), prices=prices)
+                            builder.addMeal(dateAsDate, category, name, prices=prices)
         else:
             builder.setDayClosed(dateAsDate)
 
