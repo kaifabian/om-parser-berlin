@@ -1,11 +1,7 @@
 om-parser-berlin
 ================
 
-OpenMensa: Provides a feed parser for the canteens in Berlin (Studentenwerk Berlin).
+This repository provided a feed parser for the canteens in Berlin (Studentenwerk Berlin) until 2017.
+Then, Studentenwerk Berlin complete changed their online menu and thus, this code was not working anymore.
 
-I know, the code is messy and pretty fucked up. But it is working. So feel free to write one yourself or clean up the code, if you like. ;)
-
-The current parser requires the following python packages:
-- lxml >= 3.0.0
-- beautifulsoup >= 3.0.0
-(also: see requirements.txt)
+At the time of writing this, the current parser can be found at [escrl/openmensa-parser-berlin](/escrl/openmensa-parser-berlin) (with feeds published in  [escrl/openmensa-feed-berlin](/escrl/openmensa-feed-berlin)).
